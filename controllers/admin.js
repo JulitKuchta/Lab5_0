@@ -50,15 +50,14 @@ exports.postAddProduct = async (req, res, next) => {
     imageUrl: imageUrl,
     userId: req.session.user,
   });
-  try{
+  try {
     await product.save();
     res.redirect("/admin/products");
-  }catch(err){
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
-  
 };
 
 exports.getEditProduct = async (req, res, next) => {
@@ -67,10 +66,10 @@ exports.getEditProduct = async (req, res, next) => {
     return res.redirect("/");
   }
   const prodId = req.params.productId;
-  try{
+  try {
     const product = await Product.findById(prodId);
-    if (!product) {  
-      throw new Error("Product does not exist.");  
+    if (!product) {
+      throw new Error("Product does not exist.");
     }
     res.render("admin/edit-product", {
       pageTitle: "Edit Product",
@@ -81,7 +80,7 @@ exports.getEditProduct = async (req, res, next) => {
       errorMessage: null,
       validationErrors: [],
     });
-  }catch(err){
+  } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
     return next(error);
@@ -111,9 +110,9 @@ exports.postEditProduct = async (req, res, next) => {
       validationErrors: errors.array(),
     });
   }
-  try{
+  try {
     const product = await Product.findById(prodId);
-    if(!product){
+    if (!product) {
       throw new Error("Product does not exist.");
     }
     if (product.userId.toString() !== req.session.user._id.toString()) {
@@ -129,48 +128,53 @@ exports.postEditProduct = async (req, res, next) => {
     await product.save();
     // console.log("Produkt zmodyfikowany");
     res.redirect("/admin/products");
-  }catch(err){
-    const error = new Error(err);
-    error.httpStatusCode = 500;
-    return next(error);
-  };
-};
-
-exports.getProducts = async (req, res, next) => {
-  try{
-    const products = await Product.find({ userId: req.session.user._id });
-    res.render("admin/products", {
-      prods: products,
-      pageTitle: "Admin Products",
-      path: "/admin/products",
-    });
-  }catch(err){
-    const error = new Error(err);
-    error.httpStatusCode = 500;
-    return next(error);
-  };
-};
-
-exports.deleteProduct = async (req, res, next) => {
-  const prodId = req.params.productId;
-  const userId = req.session.user._id;
-  try{
-    const product = await Product.findById(prodId);
-    if (!product) {
-      throw new Error("Product not found.");
-    }
-    fileHelper.deleteFile(product.imageUrl);
-    const result = await Product.deleteOne({ _id: prodId, userId: userId });
-    if(result.deletedCount>0){
-      // console.log(`Produkt id=${prodId} usunięty`);
-      res.status(200).json({ message: "Success!" });
-    }
-    return result;
-  }catch(err){
+  } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
     return next(error);
   }
 };
 
+exports.getProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({ userId: req.session.user._id });
+    res.render("admin/products", {
+      prods: products,
+      pageTitle: "Admin Products",
+      path: "/admin/products",
+    });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
 
+exports.deleteProduct = async (req, res, next) => {
+  const prodId = req.params.productId;
+  const userId = req.session.user._id;
+  try {
+    const product = await Product.findById(prodId);
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+    fileHelper.deleteFile(product.imageUrl);
+    const result = await Product.deleteOne({ _id: prodId, userId: userId });
+    if (result.deletedCount > 0) {
+      // console.log(`Produkt id=${prodId} usunięty`);
+      res.status(200).json({ message: "Success!" });
+    }
+    return result;
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+exports.checkIsLogged = (req, res, next) => {
+  if (!req.session.isAuthenticated) {
+    return res.redirect("/login");
+  }
+  next();
+};

@@ -1,3 +1,4 @@
+const { parseSync } = require("@babel/core");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -10,8 +11,12 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  resetToken: String,
-  resetTokenExpiration: Date,
+  resetToken: {
+    type: String,
+  },
+  resetTokenExpiration: {
+    type: Date,
+  },
   cart: {
     items: [
       {
@@ -35,16 +40,15 @@ userSchema.methods.addToCart = function (product) {
   });
   let newQuantity = 1;
   const updatedCartItems = [...this.cart.items];
-
-  if (cartProductIndex >= 0) {
+  if (cartProductIndex > 0) {
     newQuantity = this.cart.items[cartProductIndex].quantity + 1;
     updatedCartItems[cartProductIndex].quantity = newQuantity;
   } else {
     updatedCartItems.push({ productId: product._id, quantity: newQuantity });
+    const updatedCart = { items: updatedCartItems };
+    this.cart = updatedCart;
+    return this.save();
   }
-  const updatedCart = { items: updatedCartItems };
-  this.cart = updatedCart;
-  return this.save();
 };
 
 userSchema.methods.removeFromCart = function (productId) {

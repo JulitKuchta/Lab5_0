@@ -58,7 +58,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.locals.isAuthenticated = false;
+  res.locals.isAuthenticated = req.session.isAuthenticated;
   res.locals.cToken = req.csrfToken();
   res.locals.path = "/";
   next();
